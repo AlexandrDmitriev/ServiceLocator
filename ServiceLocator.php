@@ -7,6 +7,8 @@ namespace ServiceLocator;
  * Component require some auto loader
  * 
  * @package ServiceLocator
+ * @property array $registered
+ * @property AbstractFactory $abstractFactory
  */
 class ServiceLocator
 {
@@ -19,7 +21,7 @@ class ServiceLocator
      * Array of service instances
      * @var array
      */
-    protected $services;
+    protected $services = array();
 
     /**
      * Array of services available to load
@@ -43,13 +45,72 @@ class ServiceLocator
         $this->registered = $config;
     }
 
-    public function locate($name)
+    /**
+     * @param $className
+     *
+     * @throws Exception
+     * @return Object
+     */
+    public function locate($className)
     {
-        //todo: locate
+        if (array_key_exists($className, $this->services)) {
+            return $this->services[$className];
+        } elseif (array_key_exists($className, $this->registered)) {
+            $service = $this->createNewInstance($className);
+            $this->services[$className] = $service;
+            return $this->services[$className];
+        } else {
+            //todo: add outer relation resolver
+            throw new \Exception('Invalid Argument');
+        }
     }
 
-    public function createNewInstance()
+    /**
+     * @param $className
+     *
+     * @return Object
+     */
+    public function createNewInstance($className)
     {
+        $arguments = empty($this->registered[$className]['arguments'])
+            ? array()
+            : $this->registered[$className]['arguments'];
+        $locatedArguments = $this->locateArguments($arguments);
+        $callbacks = $this->getCallBacks($className, 'afterInit');
+        return $this->abstractFactory->createInstance($className, $locatedArguments, $callbacks);
+    }
 
+    protected function getCallBacks($className, $type)
+    {
+        $callbacksList = array();
+        if (!empty($this->registered[$className]['callbacks'])) {
+            foreach ($this->registered[$className]['callbacks'] as $callbackType => $callback) {
+                if ($callbackType != $type) {
+                    continue;
+                }
+                $methodName = key($callback);
+                $locatedArguments = $this->locateArguments($callback[$methodName]);
+                $callbacksList[] = new ServiceCallBack($methodName, $locatedArguments);
+            }
+        }
+        return $callbacksList;
+    }
+
+    protected function locateArguments(array $arguments)
+    {
+        $locatedArguments = array();
+
+        foreach ($arguments as $argument) {
+            $locatedArguments[] = $this->locate($argument);
+        }
+
+        return $locatedArguments;
+    }
+
+    public function __get($name)
+    {
+        if (property_exists($this, $name)) {
+            return $this->$name;
+        }
     }
 }
