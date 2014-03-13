@@ -2,6 +2,10 @@
 
 namespace ServiceLocator;
 
+use ServiceLocator\Entity\ServiceCallBack;
+use ServiceLocator\Exceptions\ServiceLocatorException;
+use ServiceLocator\Utility\AdditionalParamsBehavior;
+
 /**
  * Class ServiceLocator
  * Component require some auto loader
@@ -29,6 +33,7 @@ class ServiceLocator
      */
     protected $registered;
 
+    protected $additionalParams;
 
     /**
      * @param array           $config
@@ -48,7 +53,7 @@ class ServiceLocator
     /**
      * @param $className
      *
-     * @throws Exception
+     * @throws \Exception
      * @return Object
      */
     public function locate($className)
@@ -59,19 +64,25 @@ class ServiceLocator
             $service = $this->createNewInstance($className);
             $this->services[$className] = $service;
             return $this->services[$className];
+        } elseif (array_key_exists($className, $this->additionalParams)) {
+            return $this->additionalParams[$className];
         } else {
-            //todo: add outer relation resolver
-            throw new \Exception('Invalid Argument');
+            throw new ServiceLocatorException("Can't resolve dependency with alias: {$className}");
         }
     }
 
     /**
      * @param $className
      *
+     * @throws ServiceLocatorException
      * @return Object
      */
     public function createNewInstance($className)
     {
+        if (!array_key_exists($className, $this->registered)) {
+            throw new ServiceLocatorException("Class {$className} not found in configuration");
+        }
+
         $arguments = empty($this->registered[$className]['arguments'])
             ? array()
             : $this->registered[$className]['arguments'];
@@ -107,10 +118,22 @@ class ServiceLocator
         return $locatedArguments;
     }
 
+    public function addAdditionalParam($alias, $value, $behavior = AdditionalParamsBehavior::FIRE_EXCEPTION)
+    {
+        $paramExist = array_key_exists($alias, $this->additionalParams);
+        if (!$paramExist || $behavior == AdditionalParamsBehavior::REPLACE) {
+            $this->additionalParams[$alias] = $value;
+        } elseif ($behavior == AdditionalParamsBehavior::FIRE_EXCEPTION) {
+            throw new ServiceLocatorException("Parameter: {$alias} already exist");
+        }
+    }
+
     public function __get($name)
     {
         if (property_exists($this, $name)) {
             return $this->$name;
         }
+
+        throw new ServiceLocatorException("Can not return protected or private property: {$name}. It is not exist.");
     }
 }

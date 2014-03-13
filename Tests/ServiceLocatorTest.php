@@ -41,7 +41,7 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
         $config = array(
             $testClassName => array(
                 'arguments' => array(),
-                'callbacks' => array('afterInit' => array('initMethod' => array('init'=>array())))
+                'callbacks' => array('afterInit' => array('initMethod' => array('init' => array())))
             )
         );
         $factory = $this->getMock('\ServiceLocator\AbstractFactory');
@@ -55,7 +55,7 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
         $config = array(
             $className => array(
                 'arguments' => array(),
-                'callbacks' => array('afterInit' => array('init'=>array()))
+                'callbacks' => array('afterInit' => array('init' => array()))
             )
         );
         $factory = $this->getMock('\ServiceLocator\AbstractFactory');
@@ -85,7 +85,7 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException \Exception
+     * @expectedException \ServiceLocator\Exceptions\ServiceLocatorException
      */
     public function testCreteNewInstanceShouldThrowAnErrorIfClassNotRegistered()
     {
@@ -93,14 +93,31 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
         $config = array(
             $testClassName => array(
                 'arguments' => array(),
-                'callbacks' => array('afterInit' => array('initMethod' => array('init'=>array())))
+                'callbacks' => array('afterInit' => array('initMethod' => array('init' => array())))
             )
         );
         $factory = $this->getMock('\ServiceLocator\AbstractFactory');
-        $expected = new \StdClass();
-        $factory->expects($this->once())->method('createInstance')->will($this->returnValue($expected));
         $this->serviceLocator = new ServiceLocator($config, $factory);
         $this->serviceLocator->createNewInstance('Another');
+    }
+
+    public function testCreteNewInstanceShouldNotCallFactoryMethod()
+    {
+        $testClassName = 'serviceAlias';
+        $config = array(
+            $testClassName => array(
+                'arguments' => array(),
+                'callbacks' => array('afterInit' => array('initMethod' => array('init' => array())))
+            )
+        );
+        $factory = $this->getMock('\ServiceLocator\AbstractFactory');
+        $factory->expects($this->never())->method('createInstance');
+        $this->serviceLocator = new ServiceLocator($config, $factory);
+        try {
+            $this->serviceLocator->createNewInstance('Another');
+        } catch (\Exception $e) {
+            //previous test fill this case
+        }
     }
 
     public function testCreteNewInstanceShouldCreateNewInstance()
@@ -109,7 +126,7 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
         $config = array(
             $testClassName => array(
                 'arguments' => array(),
-                'callbacks' => array('afterInit' => array('initMethod' => array('init'=>array())))
+                'callbacks' => array('afterInit' => array('initMethod' => array()))
             )
         );
         $factory = $this->getMock('\ServiceLocator\AbstractFactory');
@@ -126,7 +143,7 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
         $config = array(
             $testClassName => array(
                 'arguments' => array(),
-                'callbacks' => array('afterInit' => array('initMethod' => array('init'=>array())))
+                'callbacks' => array('afterInit' => array('initMethod' => array()))
             )
         );
         $factory = $this->getMock('\ServiceLocator\AbstractFactory');

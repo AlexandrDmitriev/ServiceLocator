@@ -1,6 +1,6 @@
 <?php
 
-namespace ServiceLocator;
+namespace ServiceLocator\Entity;
 
 /**
  * Class ServiceCallBack
