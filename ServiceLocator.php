@@ -5,6 +5,7 @@ namespace ServiceLocator;
 use ServiceLocator\Entity\ServiceCallBack;
 use ServiceLocator\Exceptions\ServiceLocatorException;
 use ServiceLocator\Utility\AdditionalParamsBehavior;
+use ServiceLocator\Utility\BaseAccessor;
 
 /**
  * Class ServiceLocator
@@ -14,7 +15,7 @@ use ServiceLocator\Utility\AdditionalParamsBehavior;
  * @property array $registered
  * @property AbstractFactory $abstractFactory
  */
-class ServiceLocator
+class ServiceLocator extends BaseAccessor
 {
     /**
      * @var AbstractFactory
@@ -126,14 +127,5 @@ class ServiceLocator
         } elseif ($behavior == AdditionalParamsBehavior::FIRE_EXCEPTION) {
             throw new ServiceLocatorException("Parameter: {$alias} already exist");
         }
-    }
-
-    public function __get($name)
-    {
-        if (property_exists($this, $name)) {
-            return $this->$name;
-        }
-
-        throw new ServiceLocatorException("Can not return protected or private property: {$name}. It is not exist.");
     }
 }

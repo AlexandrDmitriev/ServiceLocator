@@ -23,6 +23,13 @@ class AbstractFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(new \stdClass(), $actual);
     }
 
+    public function testCreateInstanceShouldCreateNewClassInstanceEveryTime()
+    {
+        $expected = $this->factory->createInstance('\stdClass', array(), array());
+        $actual = $this->factory->createInstance('\stdClass', array(), array());
+        $this->assertNotSame($expected, $actual);
+    }
+
     public function testCreateInstanceShouldCallCallbackAfterInit()
     {
         $expectedMethod = 'init';
@@ -31,7 +38,11 @@ class AbstractFactoryTest extends \PHPUnit_Framework_TestCase
         $expected = new AbstractFactoryStubClass();
         $expected->params = $expectedParam;
         $expectedCallback = new ServiceCallBack($expectedMethod, $expectedArguments);
-        $actual = $this->factory->createInstance('\ServiceLocator\Tests\AbstractFactoryStubClass', array(), array($expectedCallback));
+        $actual = $this->factory->createInstance(
+            '\ServiceLocator\Tests\AbstractFactoryStubClass',
+            array(),
+            array($expectedCallback)
+        );
         $this->assertEquals($expected, $actual);
     }
 }

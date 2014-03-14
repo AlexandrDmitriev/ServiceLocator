@@ -2,6 +2,8 @@
 
 namespace ServiceLocator;
 
+use ServiceLocator\Entity\ServiceCallBack;
+
 class AbstractFactory
 {
     public function createInstance($className, array $arguments, array $afterInitCallBacks)

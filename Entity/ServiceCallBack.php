@@ -2,27 +2,22 @@
 
 namespace ServiceLocator\Entity;
 
+use ServiceLocator\Utility\BaseAccessor;
+
 /**
  * Class ServiceCallBack
  * @package ServiceLocator
  * @property string $methodName
  * @property array  $methodArgs
  */
-class ServiceCallBack
+class ServiceCallBack extends BaseAccessor
 {
-    private $methodName;
-    private $methodArgs;
+    protected $methodName;
+    protected $methodArgs;
 
     public function __construct($methodName, array $methodArgs)
     {
         $this->methodName = $methodName;
         $this->methodArgs = $methodArgs;
-    }
-
-    public function __get($name)
-    {
-        if (property_exists($this, $name)) {
-            return $this->$name;
-        }
     }
 }
