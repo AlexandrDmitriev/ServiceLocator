@@ -2,6 +2,7 @@
 
 namespace ServiceLocator;
 
+use CoreInterfaces\IServiceLocator;
 use ServiceLocator\Entity\ServiceCallBack;
 use ServiceLocator\Exceptions\ServiceLocatorException;
 use ServiceLocator\Utility\AdditionalParamsBehavior;
@@ -12,10 +13,10 @@ use ServiceLocator\Utility\BaseAccessor;
  * Component require some auto loader
  * 
  * @package ServiceLocator
- * @property array $registered
+ * @property array $config
  * @property AbstractFactory $abstractFactory
  */
-class ServiceLocator extends BaseAccessor
+class ServiceLocator extends BaseAccessor implements IServiceLocator
 {
     /**
      * @var AbstractFactory
@@ -32,7 +33,7 @@ class ServiceLocator extends BaseAccessor
      * Array of services available to load
      * @var array
      */
-    protected $registered;
+    protected $config;
 
     protected $additionalParams;
 
@@ -48,7 +49,7 @@ class ServiceLocator extends BaseAccessor
 
         $this->abstractFactory = $abstractFactory;
 
-        $this->registered = $config;
+        $this->config = $config;
     }
 
     /**
@@ -61,7 +62,7 @@ class ServiceLocator extends BaseAccessor
     {
         if (array_key_exists($className, $this->services)) {
             return $this->services[$className];
-        } elseif (array_key_exists($className, $this->registered)) {
+        } elseif (array_key_exists($className, $this->config)) {
             $service = $this->createNewInstance($className);
             $this->services[$className] = $service;
             return $this->services[$className];
@@ -80,13 +81,13 @@ class ServiceLocator extends BaseAccessor
      */
     public function createNewInstance($className)
     {
-        if (!array_key_exists($className, $this->registered)) {
+        if (!array_key_exists($className, $this->config)) {
             throw new ServiceLocatorException("Class {$className} not found in configuration");
         }
 
-        $arguments = empty($this->registered[$className]['arguments'])
+        $arguments = empty($this->config[$className]['arguments'])
             ? array()
-            : $this->registered[$className]['arguments'];
+            : $this->config[$className]['arguments'];
         $locatedArguments = $this->locateArguments($arguments);
         $callbacks = $this->getCallBacks($className, 'afterInit');
         return $this->abstractFactory->createInstance($className, $locatedArguments, $callbacks);
@@ -95,8 +96,8 @@ class ServiceLocator extends BaseAccessor
     protected function getCallBacks($className, $type)
     {
         $callbacksList = array();
-        if (!empty($this->registered[$className]['callbacks'])) {
-            foreach ($this->registered[$className]['callbacks'] as $callbackType => $callback) {
+        if (!empty($this->config[$className]['callbacks'])) {
+            foreach ($this->config[$className]['callbacks'] as $callbackType => $callback) {
                 if ($callbackType != $type) {
                     continue;
                 }

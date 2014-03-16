@@ -31,7 +31,7 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
         );
         $this->serviceLocator = new ServiceLocator($expected);
 
-        $this->assertEquals($expected, $this->serviceLocator->registered);
+        $this->assertEquals($expected, $this->serviceLocator->config);
     }
 
     public function testConstructorCreateDefaultComponentFactoryIfItIsNotInArgumentsList()
@@ -44,7 +44,7 @@ class ServiceLocatorTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException \Exception
      */
-    public function testLocateShouldThrowAnErrorIfClassNotRegistered()
+    public function testLocateShouldThrowAnErrorIfClassNotInConfig()
     {
         $testClassName = 'serviceAlias';
         $config = array(
